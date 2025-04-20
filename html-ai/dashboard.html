@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Risco Cardíaco</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .filtros {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        input, select {
+            padding: 6px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background: #007bff;
+            color: white;
+        }
+
+        canvas {
+            max-width: 400px;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Dashboard de Riscos Cardíacos</h1>
+
+    <div class="filtros">
+        <input type="text" id="filtroNome" placeholder="Filtrar por nome">
+        <select id="filtroRisco">
+            <option value="">Todos os riscos</option>
+            <option value="Alto">Alto</option>
+            <option value="Baixo">Baixo</option>
+        </select>
+        <input type="date" id="filtroData">
+    </div>
+
+    <table id="tabela">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Idade</th>
+                <th>Gênero</th>
+                <th>Risco</th>
+                <th>Data</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <canvas id="graficoRisco"></canvas>
+
+    <script>
+        let dados = [];
+
+        async function carregarDados() {
+            const res = await fetch("http://localhost:5000/predictions");
+            dados = await res.json();
+            atualizarTabelaEGrafico();
+        }
+
+        function filtrarDados() {
+            const nome = document.getElementById("filtroNome").value.toLowerCase();
+            const risco = document.getElementById("filtroRisco").value;
+            const data = document.getElementById("filtroData").value;
+
+            return dados.filter(d => {
+                return (!nome || d.nome.toLowerCase().includes(nome)) &&
+                       (!risco || d.risco === risco) &&
+                       (!data || d.data_inclusao === data);
+            });
+        }
+
+        function atualizarTabelaEGrafico() {
+            const filtrados = filtrarDados();
+            const tbody = document.querySelector("#tabela tbody");
+            tbody.innerHTML = "";
+
+            let contagem = { "Alto": 0, "Baixo": 0 };
+
+            filtrados.forEach(item => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${item.nome}</td>
+                    <td>${item.idade}</td>
+                    <td>${item.genero}</td>
+                    <td>${item.risco}</td>
+                    <td>${item.data_inclusao}</td>
+                `;
+                tbody.appendChild(tr);
+                contagem[item.risco]++;
+            });
+
+            atualizarGrafico(contagem);
+        }
+
+        let grafico;
+        function atualizarGrafico(contagem) {
+            const ctx = document.getElementById("graficoRisco").getContext("2d");
+            if (grafico) grafico.destroy();
+
+            grafico = new Chart(ctx, {
+                type: "pie",
+                data: {
+                    labels: ["Alto", "Baixo"],
+                    datasets: [{
+                        label: "Distribuição de Risco",
+                        data: [contagem["Alto"], contagem["Baixo"]],
+                        backgroundColor: ["#dc3545", "#28a745"]
+                    }]
+                }
+            });
+        }
+
+        document.getElementById("filtroNome").addEventListener("input", atualizarTabelaEGrafico);
+        document.getElementById("filtroRisco").addEventListener("change", atualizarTabelaEGrafico);
+        document.getElementById("filtroData").addEventListener("change", atualizarTabelaEGrafico);
+
+        carregarDados();
+    </script>
+
+</body>
+</html>

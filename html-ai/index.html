@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação de Risco Cardíaco</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+        }
+
+        .menu-hamburguer {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .menu-links {
+            display: none;
+            background-color: #007bff;
+            position: absolute;
+            top: 50px;
+            left: 0;
+            width: 100%;
+            text-align: left;
+            padding: 10px 0;
+            z-index: 10;
+        }
+
+        .menu-links.ativo {
+            display: block;
+        }
+
+        .menu-links a {
+            display: block;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+        }
+
+        .menu-links a:hover {
+            background-color: #555;
+        }
+
+        .container {
+            margin-top: 15px;
+            padding: 20px;
+        }
+
+        form {
+            margin-top: 30px;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            padding: 8px;
+            border: 1px solid #000000;
+            border-radius: 3px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        button[type="submit"] {
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            width: fit-content;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .resultado-area {
+            margin-top: 20px;
+        }
+
+        .resultado-area label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #resultado {
+            padding: 15px;
+            border: 1px solid #000000;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="menu-hamburguer">
+        <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
+        <div class="menu-links">
+            <a href="dashboard.html">Dashboard</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Avaliação de Risco Cardíaco</h1>
+
+        <form id="formularioRisco">
+            <div>
+                <label for="nome">Nome:</label>
+                <input type="text" id="nome" name="nome" required>
+            </div>
+            <div>
+                <label for="idade">Idade:</label>
+                <input type="number" id="idade" name="idade" required>
+            </div>
+            <div>
+                <label for="genero">Gênero:</label>
+                <select id="genero" name="genero" required>
+                    <option value="">Selecione</option>
+                    <option value="masculino">Masculino</option>
+                    <option value="feminino">Feminino</option>
+                    <option value="outro">Outro</option>
+                </select>
+            </div>
+            <div>
+                <label for="frequencia_cardiaca">Frequência Cardíaca (bpm):</label>
+                <input type="number" id="frequencia_cardiaca" name="frequencia_cardiaca" required>
+            </div>
+            <div>
+                <label for="pressao_sistolica">Pressão Arterial Sistólica (mmHg):</label>
+                <input type="number" id="pressao_sistolica" name="pressao_sistolica" required>
+            </div>
+            <div>
+                <label for="pressao_diastolica">Pressão Arterial Diastólica (mmHg):</label>
+                <input type="number" id="pressao_diastolica" name="pressao_diastolica" required>
+            </div>
+            <div>
+                <label for="glicose">Glicose no Sangue (mg/dL):</label>
+                <input type="number" id="glicose" name="glicose" required>
+            </div>
+            <div>
+                <label for="ckmb">CK-MB (enzima cardíaca):</label>
+                <input type="number" id="ckmb" name="ckmb" step="any" required>
+            </div>
+            <div>
+                <label for="troponina">Troponina (indicador de lesão cardíaca):</label>
+                <input type="number" id="troponina" name="troponina" step="any" required>
+            </div>
+            <div>
+                <label for="data_inclusao">Data da inclusão dos dados:</label>
+                <input type="date" id="data_inclusao" name="data_inclusao" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit">Enviar</button>
+            </div>
+        </form>
+
+        <div class="resultado-area">
+            <label for="resultado">Resultado:</label>
+            <div id="resultado"></div>
+        </div>
+    </div>
+
+    <script>
+    
+    function toggleMenu() {
+        const menuLinks = document.querySelector('.menu-links');
+        menuLinks.classList.toggle('ativo');
+    }
+
+    function validarFormulario(dados) {
+        const erros = [];
+
+        if (!dados.nome.trim()) erros.push("Nome é obrigatório.");
+        if (dados.idade <= 0) erros.push("Idade deve ser maior que zero.");
+        if (!["masculino", "feminino", "outro"].includes(dados.genero)) erros.push("Gênero inválido.");
+        if (dados.frequencia_cardiaca <= 0) erros.push("Frequência cardíaca deve ser maior que zero.");
+        if (dados.pressao_sistolica <= 0 || dados.pressao_diastolica <= 0) erros.push("Pressões devem ser maiores que zero.");
+        if (dados.glicose <= 0) erros.push("Glicose deve ser maior que zero.");
+        if (dados.ckmb <= 0) erros.push("CK-MB deve ser maior que zero.");
+        if (dados.troponina <= 0) erros.push("Troponina deve ser maior que zero.");
+        if (!dados.data_inclusao) erros.push("Data de inclusão é obrigatória.");
+
+        return erros;
+    }
+
+    document.getElementById("formularioRisco").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const dados = {
+            nome: form.nome.value,
+            idade: parseInt(form.idade.value),
+            genero: form.genero.value,
+            frequencia_cardiaca: parseInt(form.frequencia_cardiaca.value),
+            pressao_sistolica: parseInt(form.pressao_sistolica.value),
+            pressao_diastolica: parseInt(form.pressao_diastolica.value),
+            glicose: parseInt(form.glicose.value),
+            ckmb: parseFloat(form.ckmb.value),
+            troponina: parseFloat(form.troponina.value),
+            data_inclusao: form.data_inclusao.value
+        };
+
+        const erros = validarFormulario(dados);
+        if (erros.length > 0) {
+            alert("Erros encontrados:\n" + erros.join("\n"));
+            return;
+        }
+
+        try {
+            const res = await fetch("http://localhost:5000/predict", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dados)
+            });
+
+            const json = await res.json();
+
+            if (json.risco) {
+                document.getElementById("resultado").innerText = `Risco: ${json.risco}`;
+            } else {
+                document.getElementById("resultado").innerText = `Erro: ${json.error}`;
+            }
+        } catch (err) {
+            document.getElementById("resultado").innerText = "Erro ao conectar ao servidor.";
+        }
+    });
+
+
+    </script>
+
+</body>
+</html>
